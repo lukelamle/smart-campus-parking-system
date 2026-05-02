@@ -5,237 +5,106 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Campus Parking System</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f4f6f8;
-      color: #222;
-    }
-
-    header {
-      background: #0b5d67;
-      color: white;
-      padding: 20px 24px;
-    }
-
-    header h1 {
-      margin: 0 0 10px;
-      font-size: 36px;
-    }
-
-    nav {
-      margin-top: 8px;
-    }
-
-    nav a {
-      color: white;
-      margin-right: 18px;
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 15px;
-    }
-
-    nav a:hover {
-      text-decoration: underline;
-    }
-
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-
-    .section-space {
-      margin-top: 24px;
-    }
-
-    .card {
-      background: white;
-      border-radius: 14px;
-      padding: 22px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-    }
-
-    .card h2 {
-      margin-top: 0;
-      margin-bottom: 18px;
-      font-size: 22px;
-    }
-
-    .card h3 {
-      margin-top: 0;
-      margin-bottom: 16px;
-      font-size: 18px;
-    }
-
-    .intro p {
-      margin: 8px 0;
-    }
-
-    .tag {
-      display: inline-block;
-      background: #d6f0f2;
-      color: #0b5d67;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      margin-right: 8px;
-    }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
-    }
-
-    .admin-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 600;
-    }
-
-    input,
-    select {
-      width: 100%;
-      padding: 11px 12px;
-      margin-bottom: 14px;
-      border: 1px solid #cfd8dc;
-      border-radius: 8px;
-      font-size: 15px;
-      background: #fff;
-    }
-
-    button {
-      background: #0b5d67;
-      color: white;
-      border: none;
-      padding: 11px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: 600;
-    }
-
-    button:hover {
-      background: #094b53;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      background: white;
-      overflow: hidden;
-      border-radius: 10px;
-    }
-
-    th,
-    td {
-      padding: 12px;
-      border-bottom: 1px solid #e3e7ea;
-      text-align: left;
-      font-size: 15px;
-    }
-
-    th {
-      background: #f8fafb;
-      font-weight: 700;
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    .message {
-      margin-top: 12px;
-      font-weight: bold;
-      min-height: 20px;
-    }
-
-    .section-title {
-      margin-bottom: 14px;
-    }
-
-    @media (max-width: 768px) {
-      header h1 {
-        font-size: 28px;
-      }
-
-      main {
-        padding: 16px;
-      }
-
-      .card {
-        padding: 18px;
-      }
-    }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f8; color: #222; }
+    header { background: #0b5d67; color: white; padding: 20px 24px; }
+    header h1 { margin: 0 0 10px; font-size: 34px; }
+    nav a { color: white; margin-right: 16px; text-decoration: none; font-weight: 500; }
+    main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    h2, h3 { margin-top: 0; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; }
+    input, select { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; }
+    button { background: #0b5d67; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; margin-right: 8px; margin-top: 4px; }
+    button:hover { background: #094c53; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+    th { background: #f7f9fa; }
+    .message { font-weight: bold; margin-top: 10px; min-height: 20px; }
+    .success { color: green; }
+    .error { color: red; }
+    .tag { display: inline-block; background: #d6f0f2; color: #0b5d67; padding: 4px 8px; border-radius: 999px; font-size: 12px; margin-right: 6px; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
   <header>
     <h1>Smart Campus Parking System</h1>
     <nav>
-      <a href="#login">Login</a>
+      <a href="#auth">Authentication</a>
       <a href="#reserve">Reserve</a>
       <a href="#lots">Parking Lots</a>
       <a href="#admin">Admin</a>
+      <a href="#reports">Reports</a>
     </nav>
   </header>
 
   <main>
-    <section class="card intro">
+    <section class="card">
       <h2>Team 12 Project</h2>
-      <p>Team Members: Thuan Nguyen, Luke Le, Hrant Minasyan, Omeid Sahibzada</p>
-      <p>This starter interface supports the Smart Campus Parking System requirements.</p>
-      <p>
-        <span class="tag">CMPE 131</span>
-        <span class="tag">Professor Ishie Eswar</span>
-      </p>
+      <p><span class="tag">CMPE 131</span><span class="tag">Smart Campus Parking</span></p>
+      <p id="currentUserDisplay">Current User: None</p>
     </section>
 
-    <div class="grid-2 section-space">
-      <section class="card" id="login">
-        <h2>Login</h2>
-
+    <div class="grid-2" id="auth">
+      <section class="card">
+        <h2>Create User</h2>
+        <label>Name</label>
+        <input type="text" id="registerName" placeholder="Full Name" />
         <label>Email</label>
-        <input type="email" placeholder="student@university.edu" />
-
+        <input type="email" id="registerEmail" placeholder="user@campus.edu" />
         <label>Password</label>
-        <input type="password" placeholder="********" />
-
-        <button>Log In</button>
+        <input type="password" id="registerPassword" placeholder="Password" />
+        <label>Role</label>
+        <select id="registerRole">
+          <option value="student">Student</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button onclick="registerUser()">Create User</button>
+        <p id="registerMessage" class="message"></p>
       </section>
 
+      <section class="card">
+        <h2>Login</h2>
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="admin@campus.edu" />
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Password" />
+        <button onclick="loginUser()">Log In</button>
+        <button onclick="logoutUser()">Log Out</button>
+        <p id="loginMessage" class="message"></p>
+      </section>
+    </div>
+
+    <div class="grid-2">
       <section class="card" id="reserve">
         <h2>Reserve a Space</h2>
-
         <label>Select Lot</label>
         <select id="lotSelect"></select>
-
         <label>Duration</label>
         <select id="durationSelect">
           <option value="30 minutes">30 minutes</option>
           <option value="1 hour">1 hour</option>
           <option value="2 hours">2 hours</option>
         </select>
-
         <button onclick="reserveSpace()">Confirm Reservation</button>
         <p id="reservationMessage" class="message"></p>
       </section>
+
+      <section class="card">
+        <h2>Cancel Reservation</h2>
+        <label>Select Reservation</label>
+        <select id="reservationSelect"></select>
+        <button onclick="cancelReservation()">Cancel Reservation</button>
+        <p id="cancelMessage" class="message"></p>
+      </section>
     </div>
 
-    <section class="card section-space" id="lots">
-      <h2 class="section-title">Available Parking Lots</h2>
+    <section class="card" id="lots">
+      <h2>Available Parking Lots</h2>
+      <button onclick="loadLots()">Refresh Lots</button>
       <table>
         <thead>
           <tr>
@@ -246,120 +115,308 @@
             <th>Status</th>
           </tr>
         </thead>
-        <tbody id="lotsTableBody">
-          <tr>
-            <td colspan="5">Loading parking lots...</td>
-          </tr>
-        </tbody>
+        <tbody id="lotsTableBody"></tbody>
       </table>
     </section>
 
-    <section class="section-space" id="admin">
+    <section class="card hidden" id="admin">
       <h2>Admin Dashboard</h2>
-
-      <div class="admin-grid">
-        <section class="card">
-          <h3>Add Parking Lot</h3>
-
-          <label>New Lot Name</label>
-          <input type="text" placeholder="South Lot" />
-
+      <div class="grid-3">
+        <section>
+          <h3>Add Lot</h3>
+          <label>Lot Name</label>
+          <input type="text" id="addLotName" placeholder="South Lot" />
+          <label>Location</label>
+          <input type="text" id="addLotLocation" placeholder="South Campus" />
           <label>Capacity</label>
-          <input type="number" placeholder="100" />
-
-          <button>Add Lot</button>
+          <input type="number" id="addLotCapacity" placeholder="100" />
+          <button onclick="addLot()">Add Lot</button>
+          <p id="addLotMessage" class="message"></p>
         </section>
 
-        <section class="card">
+        <section>
           <h3>Update Capacity</h3>
-
           <label>Select Lot</label>
-          <select>
-            <option>Lot A</option>
-            <option>Lot B</option>
-          </select>
-
+          <select id="adminLotSelect"></select>
           <label>New Capacity</label>
-          <input type="number" placeholder="New capacity" />
+          <input type="number" id="updateCapacityInput" placeholder="New capacity" />
+          <button onclick="updateCapacity()">Update</button>
+          <p id="updateCapacityMessage" class="message"></p>
+        </section>
 
-          <button>Update</button>
+        <section>
+          <h3>Disable Lot</h3>
+          <label>Select Lot</label>
+          <select id="disableLotSelect"></select>
+          <button onclick="disableLot()">Disable Lot</button>
+          <p id="disableLotMessage" class="message"></p>
         </section>
       </div>
+    </section>
+
+    <section class="card" id="reports">
+      <h2>Reports Summary</h2>
+      <button onclick="loadReport()">Load Report</button>
+      <div id="reportBox"></div>
+    </section>
+
+    <section class="card">
+      <h2>Reservations</h2>
+      <button onclick="loadReservations()">Refresh Reservations</button>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Lot</th>
+            <th>Duration</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="reservationTableBody"></tbody>
+      </table>
     </section>
   </main>
 
   <script>
-    async function loadLots() {
-      try {
-        const response = await fetch('http://localhost:3000/api/lots');
-        const lots = await response.json();
+    let currentUser = null;
 
-        const tableBody = document.getElementById('lotsTableBody');
-        tableBody.innerHTML = '';
+    function showMessage(id, text, isError = false) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'message ' + (isError ? 'error' : 'success');
+    }
 
-        const lotSelect = document.getElementById('lotSelect');
-        lotSelect.innerHTML = '';
+    async function loadCurrentUser() {
+      const response = await fetch('http://localhost:3000/api/current-user');
+      currentUser = await response.json();
 
-        lots.forEach(lot => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${lot.name}</td>
-            <td>${lot.location}</td>
-            <td>${lot.total_capacity}</td>
-            <td>${lot.available_spaces}</td>
-            <td>${lot.available_spaces > 0 ? 'Open' : 'Full'}</td>
-          `;
-          tableBody.appendChild(row);
+      document.getElementById('currentUserDisplay').textContent =
+        currentUser ? `Current User: ${currentUser.name} (${currentUser.role})` : 'Current User: None';
 
-          const option = document.createElement('option');
-          option.value = lot.id;
-          option.textContent = lot.name;
-          lotSelect.appendChild(option);
-        });
-      } catch (error) {
-        document.getElementById('lotsTableBody').innerHTML = `
-          <tr><td colspan="5">Failed to load parking lots.</td></tr>
-        `;
-        console.error(error);
+      const adminSection = document.getElementById('admin');
+      if (currentUser && currentUser.role === 'admin') {
+        adminSection.classList.remove('hidden');
+      } else {
+        adminSection.classList.add('hidden');
       }
+    }
+
+    async function registerUser() {
+      const name = document.getElementById('registerName').value;
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      const role = document.getElementById('registerRole').value;
+
+      const response = await fetch('http://localhost:3000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, role })
+      });
+
+      const result = await response.json();
+      showMessage('registerMessage', result.message || result.error, !response.ok);
+    }
+
+    async function loginUser() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      const response = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const result = await response.json();
+      showMessage('loginMessage', result.message || result.error, !response.ok);
+      await loadCurrentUser();
+    }
+
+    async function logoutUser() {
+      const response = await fetch('http://localhost:3000/api/logout', { method: 'POST' });
+      const result = await response.json();
+      showMessage('loginMessage', result.message, false);
+      await loadCurrentUser();
+    }
+
+    async function loadLots() {
+      const response = await fetch('http://localhost:3000/api/lots');
+      const lots = await response.json();
+
+      const tableBody = document.getElementById('lotsTableBody');
+      const lotSelect = document.getElementById('lotSelect');
+      const adminLotSelect = document.getElementById('adminLotSelect');
+      const disableLotSelect = document.getElementById('disableLotSelect');
+
+      tableBody.innerHTML = '';
+      lotSelect.innerHTML = '';
+      adminLotSelect.innerHTML = '';
+      disableLotSelect.innerHTML = '';
+
+      lots.forEach(lot => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${lot.name}</td>
+          <td>${lot.location}</td>
+          <td>${lot.total_capacity}</td>
+          <td>${lot.available_spaces}</td>
+          <td>${lot.is_active ? (lot.available_spaces > 0 ? 'Open' : 'Full') : 'Disabled'}</td>
+        `;
+        tableBody.appendChild(row);
+
+        if (lot.is_active) {
+          const option1 = document.createElement('option');
+          option1.value = lot.id;
+          option1.textContent = lot.name;
+          lotSelect.appendChild(option1);
+        }
+
+        const option2 = document.createElement('option');
+        option2.value = lot.id;
+        option2.textContent = lot.name;
+        adminLotSelect.appendChild(option2);
+
+        const option3 = document.createElement('option');
+        option3.value = lot.id;
+        option3.textContent = lot.name;
+        disableLotSelect.appendChild(option3);
+      });
     }
 
     async function reserveSpace() {
-      const lotId = document.getElementById('lotSelect').value;
-      const duration = document.getElementById('durationSelect').value;
-      const messageBox = document.getElementById('reservationMessage');
-
-      try {
-        const response = await fetch('http://localhost:3000/api/reservations', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            user_id: 1,
-            lot_id: lotId,
-            duration: duration
-          })
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-          messageBox.textContent = result.error || 'Reservation failed';
-          messageBox.style.color = 'red';
-          return;
-        }
-
-        messageBox.textContent = result.message;
-        messageBox.style.color = 'green';
-        loadLots();
-      } catch (error) {
-        messageBox.textContent = 'Error connecting to server';
-        messageBox.style.color = 'red';
+      if (!currentUser) {
+        showMessage('reservationMessage', 'Please log in first', true);
+        return;
       }
+
+      const lot_id = document.getElementById('lotSelect').value;
+      const duration = document.getElementById('durationSelect').value;
+
+      const response = await fetch('http://localhost:3000/api/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: currentUser.id, lot_id, duration })
+      });
+
+      const result = await response.json();
+      showMessage('reservationMessage', result.message || result.error, !response.ok);
+      await loadLots();
+      await loadReservations();
+      await loadReport();
     }
 
-    loadLots();
+    async function loadReservations() {
+      const response = await fetch('http://localhost:3000/api/reservations');
+      const reservations = await response.json();
+
+      const tableBody = document.getElementById('reservationTableBody');
+      const reservationSelect = document.getElementById('reservationSelect');
+
+      tableBody.innerHTML = '';
+      reservationSelect.innerHTML = '';
+
+      reservations.forEach(r => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${r.id}</td>
+          <td>${r.user_name}</td>
+          <td>${r.lot_name}</td>
+          <td>${r.duration}</td>
+          <td>${r.status}</td>
+        `;
+        tableBody.appendChild(row);
+
+        if (r.status === 'ACTIVE') {
+          const option = document.createElement('option');
+          option.value = r.id;
+          option.textContent = `#${r.id} - ${r.user_name} - ${r.lot_name}`;
+          reservationSelect.appendChild(option);
+        }
+      });
+    }
+
+    async function cancelReservation() {
+      const reservationId = document.getElementById('reservationSelect').value;
+
+      const response = await fetch(`http://localhost:3000/api/reservations/${reservationId}`, {
+        method: 'DELETE'
+      });
+
+      const result = await response.json();
+      showMessage('cancelMessage', result.message || result.error, !response.ok);
+      await loadReservations();
+      await loadLots();
+      await loadReport();
+    }
+
+    async function addLot() {
+      const name = document.getElementById('addLotName').value;
+      const location = document.getElementById('addLotLocation').value;
+      const total_capacity = document.getElementById('addLotCapacity').value;
+
+      const response = await fetch('http://localhost:3000/api/admin/lots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, location, total_capacity })
+      });
+
+      const result = await response.json();
+      showMessage('addLotMessage', result.message || result.error, !response.ok);
+      await loadLots();
+      await loadReport();
+    }
+
+    async function updateCapacity() {
+      const id = document.getElementById('adminLotSelect').value;
+      const total_capacity = document.getElementById('updateCapacityInput').value;
+
+      const response = await fetch(`http://localhost:3000/api/admin/lots/${id}/capacity`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ total_capacity })
+      });
+
+      const result = await response.json();
+      showMessage('updateCapacityMessage', result.message || result.error, !response.ok);
+      await loadLots();
+    }
+
+    async function disableLot() {
+      const id = document.getElementById('disableLotSelect').value;
+
+      const response = await fetch(`http://localhost:3000/api/admin/lots/${id}/disable`, {
+        method: 'PUT'
+      });
+
+      const result = await response.json();
+      showMessage('disableLotMessage', result.message || result.error, !response.ok);
+      await loadLots();
+      await loadReport();
+    }
+
+    async function loadReport() {
+      const response = await fetch('http://localhost:3000/api/reports/summary');
+      const report = await response.json();
+
+      document.getElementById('reportBox').innerHTML = `
+        <p>Total Lots: ${report.total_lots}</p>
+        <p>Active Lots: ${report.active_lots}</p>
+        <p>Total Users: ${report.total_users}</p>
+        <p>Total Reservations: ${report.total_reservations}</p>
+        <p>Active Reservations: ${report.active_reservations}</p>
+        <p>Cancelled Reservations: ${report.cancelled_reservations}</p>
+      `;
+    }
+
+    async function init() {
+      await loadCurrentUser();
+      await loadLots();
+      await loadReservations();
+      await loadReport();
+    }
+
+    init();
   </script>
 </body>
 </html>
