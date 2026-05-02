@@ -31,7 +31,8 @@ app.post('/api/login', (req, res) => {
 
 app.post('/api/reservations', (req, res) => {
   const { user_id, lot_id, duration } = req.body;
-  const lot = lots.find(l => l.id === lot_id && l.available_spaces > 0);
+
+  const lot = lots.find(l => l.id === parseInt(lot_id) && l.available_spaces > 0);
 
   if (!lot) {
     return res.status(400).json({ error: 'No available space in selected lot' });
@@ -42,7 +43,7 @@ app.post('/api/reservations', (req, res) => {
   const reservation = {
     id: reservations.length + 1,
     user_id,
-    lot_id,
+    lot_id: parseInt(lot_id),
     duration,
     status: 'ACTIVE'
   };
@@ -57,6 +58,7 @@ app.post('/api/reservations', (req, res) => {
 
 app.delete('/api/reservations/:id', (req, res) => {
   const reservation = reservations.find(r => r.id === parseInt(req.params.id));
+
   if (!reservation) {
     return res.status(404).json({ error: 'Reservation not found' });
   }
