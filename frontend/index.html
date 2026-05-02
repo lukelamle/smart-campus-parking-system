@@ -5,18 +5,180 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Campus Parking System</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f8; color: #222; }
-    header { background: #0b5d67; color: white; padding: 16px 24px; }
-    nav a { color: white; margin-right: 16px; text-decoration: none; }
-    main { padding: 24px; max-width: 1100px; margin: auto; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-    .card { background: white; padding: 16px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    button { background: #0b5d67; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; }
-    input, select { width: 100%; padding: 10px; margin: 6px 0 12px; }
-    table { width: 100%; background: white; border-collapse: collapse; }
-    th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
-    .tag { display:inline-block; background:#d6f0f2; color:#0b5d67; padding:4px 8px; border-radius:999px; font-size:12px; }
-    .message { margin-top: 10px; font-weight: bold; }
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f6f8;
+      color: #222;
+    }
+
+    header {
+      background: #0b5d67;
+      color: white;
+      padding: 20px 24px;
+    }
+
+    header h1 {
+      margin: 0 0 10px;
+      font-size: 36px;
+    }
+
+    nav {
+      margin-top: 8px;
+    }
+
+    nav a {
+      color: white;
+      margin-right: 18px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 15px;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .section-space {
+      margin-top: 24px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 22px;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 18px;
+    }
+
+    .intro p {
+      margin: 8px 0;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #d6f0f2;
+      color: #0b5d67;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      margin-right: 8px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 11px 12px;
+      margin-bottom: 14px;
+      border: 1px solid #cfd8dc;
+      border-radius: 8px;
+      font-size: 15px;
+      background: #fff;
+    }
+
+    button {
+      background: #0b5d67;
+      color: white;
+      border: none;
+      padding: 11px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #094b53;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: white;
+      overflow: hidden;
+      border-radius: 10px;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #e3e7ea;
+      text-align: left;
+      font-size: 15px;
+    }
+
+    th {
+      background: #f8fafb;
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .message {
+      margin-top: 12px;
+      font-weight: bold;
+      min-height: 20px;
+    }
+
+    .section-title {
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 28px;
+      }
+
+      main {
+        padding: 16px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -24,29 +186,33 @@
     <h1>Smart Campus Parking System</h1>
     <nav>
       <a href="#login">Login</a>
-      <a href="#lots">Parking Lots</a>
       <a href="#reserve">Reserve</a>
+      <a href="#lots">Parking Lots</a>
       <a href="#admin">Admin</a>
     </nav>
   </header>
 
   <main>
-    <section class="card">
+    <section class="card intro">
       <h2>Team 12 Project</h2>
       <p>Team Members: Thuan Nguyen, Luke Le, Hrant Minasyan, Omeid Sahibzada</p>
       <p>This starter interface supports the Smart Campus Parking System requirements.</p>
-      <p><span class="tag">CMPE 131</span> <span class="tag">Professor Ishie Eswar</span></p>
+      <p>
+        <span class="tag">CMPE 131</span>
+        <span class="tag">Professor Ishie Eswar</span>
+      </p>
     </section>
 
-    <br/>
-
-    <div class="grid">
+    <div class="grid-2 section-space">
       <section class="card" id="login">
         <h2>Login</h2>
+
         <label>Email</label>
         <input type="email" placeholder="student@university.edu" />
+
         <label>Password</label>
         <input type="password" placeholder="********" />
+
         <button>Log In</button>
       </section>
 
@@ -68,10 +234,8 @@
       </section>
     </div>
 
-    <br/>
-
-    <section class="card" id="lots">
-      <h2>Available Parking Lots</h2>
+    <section class="card section-space" id="lots">
+      <h2 class="section-title">Available Parking Lots</h2>
       <table>
         <thead>
           <tr>
@@ -90,27 +254,36 @@
       </table>
     </section>
 
-    <br/>
-
-    <section class="card" id="admin">
+    <section class="section-space" id="admin">
       <h2>Admin Dashboard</h2>
-      <div class="grid">
-        <div>
+
+      <div class="admin-grid">
+        <section class="card">
+          <h3>Add Parking Lot</h3>
+
           <label>New Lot Name</label>
           <input type="text" placeholder="South Lot" />
+
           <label>Capacity</label>
           <input type="number" placeholder="100" />
+
           <button>Add Lot</button>
-        </div>
-        <div>
-          <label>Update Capacity</label>
+        </section>
+
+        <section class="card">
+          <h3>Update Capacity</h3>
+
+          <label>Select Lot</label>
           <select>
             <option>Lot A</option>
             <option>Lot B</option>
           </select>
+
+          <label>New Capacity</label>
           <input type="number" placeholder="New capacity" />
+
           <button>Update</button>
-        </div>
+        </section>
       </div>
     </section>
   </main>
