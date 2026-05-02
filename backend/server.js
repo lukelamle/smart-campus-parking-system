@@ -168,4 +168,91 @@ app.post('/api/admin/lots', (req, res) => {
     return res.status(403).json({ error: 'Admin access required' });
   }
 
-  const { name, location, total_capacity 
+  const { name, location, total_capacity } = req.body;
+
+  const lot = {
+    id: lots.length + 1,
+    name,
+    location,
+    total_capacity: parseInt(total_capacity),
+    available_spaces: parseInt(total_capacity),
+    is_active: true
+  };
+
+  lots.push(lot);
+  addLog(`Admin added lot: ${name}`, currentUser);
+
+  res.json({ message: 'Parking lot added successfully', lot });
+});
+
+app.put('/api/admin/lots/:id/capacity', (req, res) => {
+  if (!currentUser || currentUser.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
+  const lot = lots.find(l => l.id === parseInt(req.params.id));
+
+  if (!lot) {
+    return res.status(404).json({ error: 'Lot not found' });
+  }
+
+  const oldCapacity = lot.total_capacity;
+  const newCapacity = parseInt(req.body.total_capacity);
+  const usedSpaces = oldCapacity - lot.available_spaces;
+
+  if (newCapacity < usedSpaces) {
+    return res.status(400).json({ error: 'New capacity cannot be less than current reserved spaces' });
+  }
+
+  lot.total_capacity = newCapacity;
+  lot.available_spaces = newCapacity - usedSpaces;
+
+  addLog(`Admin updated capacity for ${lot.name}`, currentUser);
+
+  res.json({
+    message: 'Capacity updated successfully',
+    lot
+  });
+});
+
+app.put('/api/admin/lots/:id/disable', (req, res) => {
+  if (!currentUser || currentUser.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
+  const lot = lots.find(l => l.id === parseInt(req.params.id));
+
+  if (!lot) {
+    return res.status(404).json({ error: 'Lot not found' });
+  }
+
+  lot.is_active = false;
+  addLog(`Admin disabled lot: ${lot.name}`, currentUser);
+
+  res.json({
+    message: 'Lot disabled successfully',
+    lot
+  });
+});
+
+app.get('/api/reports/summary', (req, res) => {
+  const activeReservations = reservations.filter(r => r.status === 'ACTIVE').length;
+  const cancelledReservations = reservations.filter(r => r.status === 'CANCELLED').length;
+
+  res.json({
+    total_lots: lots.length,
+    active_lots: lots.filter(l => l.is_active).length,
+    total_users: users.length,
+    total_reservations: reservations.length,
+    active_reservations: activeReservations,
+    cancelled_reservations: cancelledReservations
+  });
+});
+
+app.get('/api/audit-logs', (req, res) => {
+  res.json(auditLogs);
+});
+
+app.listen(3000, () => {
+  console.log('Server running on http://localhost:3000');
+});
