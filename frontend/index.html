@@ -1,3 +1,4 @@
+<script>
 const API_BASE_URL = 'http://localhost:3001';
 
 let currentUser = null;
@@ -10,7 +11,7 @@ function setCurrentUser(user) {
   }
 }
 
-/* CREATE USER */
+/* ========= CREATE USER ========= */
 async function handleCreateUser(event) {
   event.preventDefault();
 
@@ -30,7 +31,9 @@ async function handleCreateUser(event) {
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || data.message || 'Failed');
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || data.message || 'Failed to create user');
+    }
 
     msg.style.color = 'green';
     msg.textContent = 'User created successfully';
@@ -41,7 +44,7 @@ async function handleCreateUser(event) {
   }
 }
 
-/* LOGIN */
+/* ========= LOGIN ========= */
 async function handleLogin(event) {
   event.preventDefault();
 
@@ -71,34 +74,43 @@ async function handleLogin(event) {
   }
 }
 
-/* LOAD LOTS */
+/* ========= LOAD LOTS ========= */
 async function refreshLots() {
   const tbody = document.getElementById('lotsTableBody');
   const msg = document.getElementById('lotsMessage');
   if (msg) msg.textContent = '';
   if (!tbody) return;
+
   tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
 
   try {
     const res = await fetch(`${API_BASE_URL}/api/lots`);
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to load lots');
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to load lots');
+    }
 
-    tbody.innerHTML = data.map(lot => `
-      <tr>
-        <td>${lot.lot_name}</td>
-        <td>${lot.location}</td>
-        <td>${lot.total_capacity}</td>
-        <td>${lot.available_spaces}</td>
-        <td>${lot.status}</td>
-      </tr>
-    `).join('');
+    if (!Array.isArray(data) || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5">No lots found.</td></tr>';
+    } else {
+      tbody.innerHTML = data.map(lot => `
+        <tr>
+          <td>${lot.lot_name}</td>
+          <td>${lot.location}</td>
+          <td>${lot.total_capacity}</td>
+          <td>${lot.available_spaces}</td>
+          <td>${lot.status}</td>
+        </tr>
+      `).join('');
+    }
 
-    // fill lot select for reservation
-    const lotSelect = document.getElementById('reserve_lot_id');
-    if (lotSelect) {
-      lotSelect.innerHTML = data.map(lot =>
-        `<option value="${lot.id}">${lot.lot_name} (${lot.available_spaces}/${lot.total_capacity})</option>`
+    // fill select for reservation
+    const select = document.getElementById('reserve_lot_id');
+    if (select) {
+      select.innerHTML = data.map(lot =>
+        `<option value="${lot.id}">
+          ${lot.lot_name} (${lot.available_spaces}/${lot.total_capacity})
+        </option>`
       ).join('');
     }
   } catch (err) {
@@ -110,7 +122,7 @@ async function refreshLots() {
   }
 }
 
-/* LOAD RESERVATIONS */
+/* ========= LOAD RESERVATIONS ========= */
 async function refreshReservations() {
   const tbody = document.getElementById('reservationsTableBody');
   const msg = document.getElementById('reservationsMessage');
@@ -122,23 +134,31 @@ async function refreshReservations() {
   try {
     const res = await fetch(`${API_BASE_URL}/api/reservations`);
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to load reservations');
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to load reservations');
+    }
 
-    tbody.innerHTML = data.map(r => `
-      <tr>
-        <td>${r.id}</td>
-        <td>${r.user_name}</td>
-        <td>${r.lot_name}</td>
-        <td>${r.start_time} – ${r.end_time}</td>
-        <td>${r.status}</td>
-      </tr>
-    `).join('');
+    if (!Array.isArray(data) || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5">No reservations found.</td></tr>';
+    } else {
+      tbody.innerHTML = data.map(r => `
+        <tr>
+          <td>${r.id}</td>
+          <td>${r.user_name}</td>
+          <td>${r.lot_name}</td>
+          <td>${r.start_time} – ${r.end_time}</td>
+          <td>${r.status}</td>
+        </tr>
+      `).join('');
+    }
 
     // fill cancel select
-    const cancelSelect = document.getElementById('cancel_reservation_id');
-    if (cancelSelect) {
-      cancelSelect.innerHTML = data.map(r =>
-        `<option value="${r.id}">#${r.id} - ${r.user_name} (${r.status})</option>`
+    const select = document.getElementById('cancel_reservation_id');
+    if (select) {
+      select.innerHTML = data.map(r =>
+        `<option value="${r.id}">
+          #${r.id} - ${r.user_name} (${r.status})
+        </option>`
       ).join('');
     }
   } catch (err) {
@@ -150,7 +170,7 @@ async function refreshReservations() {
   }
 }
 
-/* CREATE RESERVATION */
+/* ========= CREATE RESERVATION ========= */
 async function handleCreateReservation(event) {
   event.preventDefault();
 
@@ -193,7 +213,7 @@ async function handleCreateReservation(event) {
   }
 }
 
-/* CANCEL RESERVATION */
+/* ========= CANCEL RESERVATION ========= */
 async function handleCancelReservation(event) {
   event.preventDefault();
 
@@ -203,7 +223,7 @@ async function handleCancelReservation(event) {
   const id = document.getElementById('cancel_reservation_id').value;
   if (!id) {
     msg.style.color = 'red';
-    msg.textContent = 'Select a reservation';
+    msg.textContent = 'Select a reservation first';
     return;
   }
 
@@ -226,7 +246,7 @@ async function handleCancelReservation(event) {
   }
 }
 
-/* LOAD REPORT SUMMARY */
+/* ========= LOAD REPORT SUMMARY ========= */
 async function loadReport() {
   const el = document.getElementById('reportSummary');
   if (!el) return;
@@ -235,22 +255,24 @@ async function loadReport() {
   try {
     const res = await fetch(`${API_BASE_URL}/api/reports/summary`);
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to load report');
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to load report');
+    }
 
-    el.textContent = `
-      Lots: ${data.total_lots},
-      Users: ${data.total_users},
-      Reservations: ${data.total_reservations},
-      Active: ${data.active_reservations},
-      Cancelled: ${data.cancelled_reservations}
-    `;
+    el.style.color = '';
+    el.textContent =
+      `Lots: ${data.total_lots}, ` +
+      `Users: ${data.total_users}, ` +
+      `Reservations: ${data.total_reservations}, ` +
+      `Active: ${data.active_reservations}, ` +
+      `Cancelled: ${data.cancelled_reservations}`;
   } catch (err) {
     el.style.color = 'red';
     el.textContent = err.message;
   }
 }
 
-/* HOOK UP FORMS AND BUTTONS AFTER DOM LOAD */
+/* ========= WIRE UP EVERYTHING ========= */
 document.addEventListener('DOMContentLoaded', () => {
   const createUserForm = document.getElementById('createUserForm');
   if (createUserForm) {
@@ -281,8 +303,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const reportBtn = document.getElementById('loadReportBtn');
   if (reportBtn) reportBtn.addEventListener('click', loadReport);
 
-  // auto-load initial data
+  // initial data load
   refreshLots();
   refreshReservations();
   loadReport();
 });
+</script>
