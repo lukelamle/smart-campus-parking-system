@@ -16,6 +16,7 @@ SELECT
     r.reservation_id,
     u.full_name,
     p.lot_name,
+    p.location,
     r.start_time,
     r.end_time,
     r.status
@@ -23,3 +24,7 @@ FROM reservations r
 JOIN users u ON r.user_id = u.user_id
 JOIN parking_lots p ON r.lot_id = p.lot_id
 ORDER BY r.reservation_id;
+
+SELECT lot_name, available_spaces, total_spaces
+FROM parking_lots
+ORDER BY lot_id;
