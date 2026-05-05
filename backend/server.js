@@ -7,7 +7,7 @@ const PORT = 3001;
 
 // adjust host/user/password to whatever works in Workbench on port 3308
 const pool = mysql.createPool({
-  host: '127.0.0.1',
+  host: 'localhost',
   port: 3308,
   user: 'parking_user',      // or 'root'
   password: 'sqlgroup12',    // or your root password
