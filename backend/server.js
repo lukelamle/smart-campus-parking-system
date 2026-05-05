@@ -1,9 +1,18 @@
 const express = require('express');
 const cors = require('cors');
+const mysql = require('mysql2/promise');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+const pool = mysql.createPool({
+  host: 'localhost',
+  port: 3308,
+  user: 'root',
+  password: 'newnameA1$',
+  database: 'smart_parking_db'
+});
 
 let users = [
   { id: 1, name: 'Admin User', email: 'admin@campus.edu', password: 'admin123', role: 'admin' },
