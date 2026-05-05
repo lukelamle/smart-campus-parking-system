@@ -10,6 +10,7 @@ let currentUser = null;
 
 const pool = mysql.createPool({
   host: 'localhost',
+  port: 3308,
   user: 'root',
   password: 'newnameA1$',
   database: 'smart_parking_db',
