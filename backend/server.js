@@ -11,8 +11,8 @@ app.use(express.json());
 const pool = mysql.createPool({
   host: 'localhost',
   port: 3308,
-  user: 'parking_user',
-  password: 'sqlgroup12',
+  user: 'root',
+  password: 'newnameA1$',
   database: 'smart_parking_db',
   waitForConnections: true,
   connectionLimit: 10,
