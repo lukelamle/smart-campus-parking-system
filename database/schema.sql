@@ -1,7 +1,11 @@
 CREATE DATABASE IF NOT EXISTS smart_parking_db;
 USE smart_parking_db;
 
-CREATE TABLE IF NOT EXISTS users (
+DROP TABLE IF EXISTS reservations;
+DROP TABLE IF EXISTS parking_lots;
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
@@ -10,16 +14,17 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS parking_lots (
+CREATE TABLE parking_lots (
     lot_id INT AUTO_INCREMENT PRIMARY KEY,
     lot_name VARCHAR(100) NOT NULL,
     location VARCHAR(255) NOT NULL,
     total_spaces INT NOT NULL,
     available_spaces INT NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'OPEN'
+    status VARCHAR(50) NOT NULL DEFAULT 'OPEN',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS reservations (
+CREATE TABLE reservations (
     reservation_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     lot_id INT NOT NULL,
@@ -29,8 +34,10 @@ CREATE TABLE IF NOT EXISTS reservations (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_reservation_user
         FOREIGN KEY (user_id) REFERENCES users(user_id)
-        ON DELETE CASCADE,
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
     CONSTRAINT fk_reservation_lot
         FOREIGN KEY (lot_id) REFERENCES parking_lots(lot_id)
         ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
