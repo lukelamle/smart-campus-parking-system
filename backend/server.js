@@ -3,317 +3,286 @@ const cors = require('cors');
 const mysql = require('mysql2/promise');
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+const PORT = 3001;
 
-let currentUser = null;
-
+// adjust host/user/password to whatever works in Workbench on port 3308
 const pool = mysql.createPool({
-  host: 'localhost',
+  host: '127.0.0.1',
   port: 3308,
-  user: 'root',
-  password: 'newnameA1$',
+  user: 'parking_user',      // or 'root'
+  password: 'sqlgroup12',    // or your root password
   database: 'smart_parking_db',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
 });
 
-async function addLog(action, userId = null) {
-  await pool.query(
-    'INSERT INTO audit_logs (user_id, action) VALUES (?, ?)',
-    [userId, action]
-  );
-}
+app.use(cors());
+app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.send('Smart Campus Parking System API is running');
+  res.json({ message: 'Smart Campus Parking API running' });
 });
 
-app.get('/api/lots', async (req, res) => {
-  const [rows] = await pool.query('SELECT * FROM parking_lots');
-  res.json(rows.map(lot => ({
-    id: lot.lot_id,
-    name: lot.lot_name,
-    location: lot.location,
-    total_capacity: lot.total_capacity,
-    available_spaces: lot.available_spaces,
-    is_active: !!lot.is_active
-  })));
-});
-
-app.post('/api/register', async (req, res) => {
+app.get('/api/health', async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const [rows] = await pool.query('SELECT 1 AS ok');
+    res.json({ success: true, db: rows[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
-    const [existing] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
-    if (existing.length > 0) {
-      return res.status(400).json({ error: 'Email already exists' });
-    }
-
-    const [roleRows] = await pool.query('SELECT role_id FROM roles WHERE role_name = ?', [role || 'student']);
-    const roleId = roleRows[0].role_id;
-
-    const [result] = await pool.query(
-      'INSERT INTO users (full_name, email, password, role_id) VALUES (?, ?, ?, ?)',
-      [name, email, password, roleId]
-    );
-
-    await addLog(`User registered: ${email}`, result.insertId);
-
-    res.json({ message: 'User created successfully' });
+/* USERS */
+app.get('/api/users', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT user_id, full_name, email, role, created_at
+      FROM users
+      ORDER BY user_id ASC
+    `);
+    res.json(rows);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.post('/api/login', async (req, res) => {
+app.post('/api/users/register', async (req, res) => {
+  try {
+    const { full_name, email, password, role } = req.body;
+
+    const [result] = await pool.execute(
+      `
+      INSERT INTO users (full_name, email, password, role)
+      VALUES (?, ?, ?, ?)
+      `,
+      [full_name, email, password, role || 'student']
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      user_id: result.insertId
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/users/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    const [rows] = await pool.execute(
+      `
+      SELECT user_id, full_name, email, role
+      FROM users
+      WHERE email = ? AND password = ?
+      `,
+      [email, password]
+    );
+
+    if (!rows.length) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user: rows[0]
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/* PARKING LOTS */
+app.get('/api/lots', async (req, res) => {
+  try {
     const [rows] = await pool.query(`
-      SELECT u.user_id, u.full_name, u.email, r.role_name
-      FROM users u
-      JOIN roles r ON u.role_id = r.role_id
-      WHERE u.email = ? AND u.password = ?
-    `, [email, password]);
+      SELECT lot_id, lot_name, location, total_spaces, available_spaces, status
+      FROM parking_lots
+      ORDER BY lot_name ASC
+    `);
 
-    if (rows.length === 0) {
-      await addLog(`Failed login attempt for ${email}`);
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
+    // shape matches your frontend table: Lot, Location, Total Capacity, Available, Status
+    const mapped = rows.map(lot => ({
+      id: lot.lot_id,
+      lot_name: lot.lot_name,
+      location: lot.location,
+      total_capacity: lot.total_spaces,
+      available_spaces: lot.available_spaces,
+      status: lot.status
+    }));
 
-    currentUser = {
-      id: rows[0].user_id,
-      name: rows[0].full_name,
-      email: rows[0].email,
-      role: rows[0].role_name
-    };
-
-    await addLog(`User logged in: ${email}`, currentUser.id);
-
-    res.json({ message: 'Login successful', user: currentUser });
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.post('/api/logout', async (req, res) => {
-  if (currentUser) {
-    await addLog(`User logged out: ${currentUser.email}`, currentUser.id);
-  }
-  currentUser = null;
-  res.json({ message: 'Logged out successfully' });
-});
-
-app.get('/api/current-user', (req, res) => {
-  res.json(currentUser);
-});
-
-app.post('/api/reset-password', async (req, res) => {
-  try {
-    const { email, newPassword } = req.body;
-
-    const [result] = await pool.query(
-      'UPDATE users SET password = ? WHERE email = ?',
-      [newPassword, email]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    await addLog(`Password reset for ${email}`);
-    res.json({ message: 'Password reset successful' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/reservations', async (req, res) => {
-  const conn = await pool.getConnection();
-
-  try {
-    const { user_id, lot_id, duration } = req.body;
-
-    await conn.beginTransaction();
-
-    const [lotRows] = await conn.query(
-      'SELECT * FROM parking_lots WHERE lot_id = ? AND available_spaces > 0 AND is_active = TRUE FOR UPDATE',
-      [lot_id]
-    );
-
-    if (lotRows.length === 0) {
-      await conn.rollback();
-      return res.status(400).json({ error: 'No available space in selected lot' });
-    }
-
-    await conn.query(
-      'UPDATE parking_lots SET available_spaces = available_spaces - 1 WHERE lot_id = ?',
-      [lot_id]
-    );
-
-    await conn.query(
-      'INSERT INTO reservations (user_id, lot_id, duration, status) VALUES (?, ?, ?, "ACTIVE")',
-      [user_id, lot_id, duration]
-    );
-
-    await conn.commit();
-
-    await addLog(`Reservation created for user ${user_id}`, user_id);
-
-    res.json({ message: 'Reservation confirmed' });
-  } catch (error) {
-    await conn.rollback();
-    res.status(500).json({ error: error.message });
-  } finally {
-    conn.release();
-  }
-});
-
+/* RESERVATIONS LIST */
 app.get('/api/reservations', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT r.reservation_id, u.full_name, p.lot_name, r.duration, r.status
+      SELECT
+        r.reservation_id,
+        u.full_name AS user_name,
+        p.lot_name,
+        r.start_time,
+        r.end_time,
+        r.status
       FROM reservations r
       JOIN users u ON r.user_id = u.user_id
       JOIN parking_lots p ON r.lot_id = p.lot_id
-      ORDER BY r.reservation_id
+      ORDER BY r.reservation_id DESC
     `);
 
-    res.json(rows.map(r => ({
+    const mapped = rows.map(r => ({
       id: r.reservation_id,
-      user_name: r.full_name,
+      user_name: r.user_name,
       lot_name: r.lot_name,
-      duration: r.duration,
+      start_time: r.start_time,
+      end_time: r.end_time,
       status: r.status
-    })));
+    }));
+
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-app.delete('/api/reservations/:id', async (req, res) => {
-  const conn = await pool.getConnection();
-
+/* CREATE RESERVATION */
+app.post('/api/reservations', async (req, res) => {
+  let conn;
   try {
+    const { user_id, lot_id, duration_minutes } = req.body;
+
+    const start = new Date();
+    const end = new Date(start.getTime() + duration_minutes * 60 * 1000);
+
+    const start_time = start.toISOString().slice(0, 19).replace('T', ' ');
+    const end_time = end.toISOString().slice(0, 19).replace('T', ' ');
+
+    conn = await pool.getConnection();
     await conn.beginTransaction();
 
-    const [rows] = await conn.query(
-      'SELECT * FROM reservations WHERE reservation_id = ? AND status = "ACTIVE" FOR UPDATE',
-      [req.params.id]
+    const [lotRows] = await conn.execute(
+      'SELECT available_spaces FROM parking_lots WHERE lot_id = ? AND status = "OPEN" FOR UPDATE',
+      [lot_id]
     );
 
-    if (rows.length === 0) {
+    if (!lotRows.length) {
       await conn.rollback();
-      return res.status(404).json({ error: 'Reservation not found or already cancelled' });
+      return res.status(400).json({ message: 'Lot not found or not open' });
     }
 
-    const reservation = rows[0];
+    if (lotRows[0].available_spaces <= 0) {
+      await conn.rollback();
+      return res.status(400).json({ message: 'No available spaces' });
+    }
 
-    await conn.query(
-      'UPDATE reservations SET status = "CANCELLED" WHERE reservation_id = ?',
-      [req.params.id]
+    const [reservationResult] = await conn.execute(
+      `
+      INSERT INTO reservations (user_id, lot_id, start_time, end_time, status)
+      VALUES (?, ?, ?, ?, 'ACTIVE')
+      `,
+      [user_id, lot_id, start_time, end_time]
     );
 
-    await conn.query(
-      'UPDATE parking_lots SET available_spaces = available_spaces + 1 WHERE lot_id = ?',
-      [reservation.lot_id]
+    await conn.execute(
+      `
+      UPDATE parking_lots
+      SET available_spaces = available_spaces - 1
+      WHERE lot_id = ?
+      `,
+      [lot_id]
     );
 
     await conn.commit();
 
-    await addLog(`Reservation cancelled: ${req.params.id}`, reservation.user_id);
-
-    res.json({ message: 'Reservation cancelled' });
+    res.status(201).json({
+      success: true,
+      message: 'Reservation created successfully',
+      reservation_id: reservationResult.insertId
+    });
   } catch (error) {
-    await conn.rollback();
-    res.status(500).json({ error: error.message });
+    if (conn) await conn.rollback();
+    res.status(500).json({ success: false, error: error.message });
   } finally {
-    conn.release();
+    if (conn) conn.release();
   }
 });
 
-app.post('/api/admin/lots', async (req, res) => {
+/* CANCEL RESERVATION */
+app.put('/api/reservations/:id/cancel', async (req, res) => {
+  let conn;
   try {
-    if (!currentUser || currentUser.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
+    const { id } = req.params;
 
-    const { name, location, total_capacity } = req.body;
+    conn = await pool.getConnection();
+    await conn.beginTransaction();
 
-    await pool.query(
-      'INSERT INTO parking_lots (lot_name, location, total_capacity, available_spaces, is_active) VALUES (?, ?, ?, ?, TRUE)',
-      [name, location, total_capacity, total_capacity]
+    const [reservationRows] = await conn.execute(
+      `
+      SELECT lot_id, status
+      FROM reservations
+      WHERE reservation_id = ?
+      FOR UPDATE
+      `,
+      [id]
     );
 
-    await addLog(`Admin added lot: ${name}`, currentUser.id);
-
-    res.json({ message: 'Parking lot added successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.put('/api/admin/lots/:id/capacity', async (req, res) => {
-  try {
-    if (!currentUser || currentUser.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' });
+    if (!reservationRows.length) {
+      await conn.rollback();
+      return res.status(404).json({ message: 'Reservation not found' });
     }
 
-    const lotId = req.params.id;
-    const newCapacity = parseInt(req.body.total_capacity);
-
-    const [rows] = await pool.query('SELECT * FROM parking_lots WHERE lot_id = ?', [lotId]);
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Lot not found' });
+    if (reservationRows[0].status === 'CANCELLED') {
+      await conn.rollback();
+      return res.status(400).json({ message: 'Reservation already cancelled' });
     }
 
-    const lot = rows[0];
-    const usedSpaces = lot.total_capacity - lot.available_spaces;
-
-    if (newCapacity < usedSpaces) {
-      return res.status(400).json({ error: 'New capacity cannot be less than reserved spaces' });
-    }
-
-    const newAvailable = newCapacity - usedSpaces;
-
-    await pool.query(
-      'UPDATE parking_lots SET total_capacity = ?, available_spaces = ? WHERE lot_id = ?',
-      [newCapacity, newAvailable, lotId]
+    await conn.execute(
+      `
+      UPDATE reservations
+      SET status = 'CANCELLED'
+      WHERE reservation_id = ?
+      `,
+      [id]
     );
 
-    await addLog(`Admin updated capacity for lot ${lotId}`, currentUser.id);
-
-    res.json({ message: 'Capacity updated successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.put('/api/admin/lots/:id/disable', async (req, res) => {
-  try {
-    if (!currentUser || currentUser.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-
-    await pool.query(
-      'UPDATE parking_lots SET is_active = FALSE WHERE lot_id = ?',
-      [req.params.id]
+    await conn.execute(
+      `
+      UPDATE parking_lots
+      SET available_spaces = available_spaces + 1
+      WHERE lot_id = ?
+      `,
+      [reservationRows[0].lot_id]
     );
 
-    await addLog(`Admin disabled lot ${req.params.id}`, currentUser.id);
+    await conn.commit();
 
-    res.json({ message: 'Lot disabled successfully' });
+    res.json({
+      success: true,
+      message: 'Reservation cancelled successfully'
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    if (conn) await conn.rollback();
+    res.status(500).json({ success: false, error: error.message });
+  } finally {
+    if (conn) conn.release();
   }
 });
 
+/* SIMPLE REPORT SUMMARY */
 app.get('/api/reports/summary', async (req, res) => {
   try {
     const [[lotsCount]] = await pool.query('SELECT COUNT(*) AS count FROM parking_lots');
-    const [[activeLots]] = await pool.query('SELECT COUNT(*) AS count FROM parking_lots WHERE is_active = TRUE');
     const [[usersCount]] = await pool.query('SELECT COUNT(*) AS count FROM users');
     const [[reservationsCount]] = await pool.query('SELECT COUNT(*) AS count FROM reservations');
     const [[activeReservations]] = await pool.query('SELECT COUNT(*) AS count FROM reservations WHERE status = "ACTIVE"');
@@ -321,7 +290,6 @@ app.get('/api/reports/summary', async (req, res) => {
 
     res.json({
       total_lots: lotsCount.count,
-      active_lots: activeLots.count,
       total_users: usersCount.count,
       total_reservations: reservationsCount.count,
       active_reservations: activeReservations.count,
@@ -332,15 +300,12 @@ app.get('/api/reports/summary', async (req, res) => {
   }
 });
 
-app.get('/api/audit-logs', async (req, res) => {
+app.listen(PORT, async () => {
   try {
-    const [rows] = await pool.query('SELECT * FROM audit_logs ORDER BY log_id DESC');
-    res.json(rows);
+    await pool.query('SELECT 1');
+    console.log(`Server running on http://localhost:${PORT}`);
+    console.log('MySQL connected successfully');
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('MySQL connection failed:', error.message);
   }
-});
-
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
 });
