@@ -11,7 +11,7 @@ let currentUser = null;
 const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
-  password: 'YOUR_MYSQL_PASSWORD',
+  password: 'newnameA1$',
   database: 'smart_parking_db'
 });
 
