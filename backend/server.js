@@ -9,8 +9,8 @@ const PORT = 3001;
 const pool = mysql.createPool({
   host: 'localhost',
   port: 3308,
-  user: 'parking_user',      // or 'root'
-  password: 'sqlgroup12',    // or your root password
+  user: 'root',      // or 'root'
+  password: 'newnameA1$',    // or your root password
   database: 'smart_parking_db',
   waitForConnections: true,
   connectionLimit: 10,
