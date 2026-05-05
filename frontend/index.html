@@ -1,311 +1,422 @@
-<script>
-const API_BASE_URL = 'http://localhost:3001';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Campus Parking System</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f8; color: #222; }
+    header { background: #0b5d67; color: white; padding: 20px 24px; }
+    header h1 { margin: 0 0 10px; font-size: 34px; }
+    nav a { color: white; margin-right: 16px; text-decoration: none; font-weight: 500; }
+    main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    h2, h3 { margin-top: 0; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; }
+    input, select { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; }
+    button { background: #0b5d67; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; margin-right: 8px; margin-top: 4px; }
+    button:hover { background: #094c53; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+    th { background: #f7f9fa; }
+    .message { font-weight: bold; margin-top: 10px; min-height: 20px; }
+    .success { color: green; }
+    .error { color: red; }
+    .tag { display: inline-block; background: #d6f0f2; color: #0b5d67; padding: 4px 8px; border-radius: 999px; font-size: 12px; margin-right: 6px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Smart Campus Parking System</h1>
+    <nav>
+      <a href="#auth">Authentication</a>
+      <a href="#reserve">Reserve</a>
+      <a href="#lots">Parking Lots</a>
+      <a href="#admin">Admin</a>
+      <a href="#reports">Reports</a>
+    </nav>
+  </header>
 
-let currentUser = null;
+  <main>
+    <section class="card">
+      <h2>Team 12 Project</h2>
+      <p><span class="tag">CMPE 131</span><span class="tag">Smart Campus Parking</span></p>
+      <p id="currentUserDisplay">Current User: None</p>
+    </section>
 
-function setCurrentUser(user) {
-  currentUser = user;
-  const label = document.getElementById('currentUserLabel');
-  if (label) {
-    label.textContent = user ? `${user.full_name} (${user.role})` : 'None';
-  }
-}
+    <div class="grid-2" id="auth">
+      <section class="card">
+        <h2>Create User</h2>
+        <label>Name</label>
+        <input type="text" id="registerName" placeholder="Full Name" />
+        <label>Email</label>
+        <input type="email" id="registerEmail" placeholder="user@campus.edu" />
+        <label>Password</label>
+        <input type="password" id="registerPassword" placeholder="Password" />
+        <label>Role</label>
+        <select id="registerRole">
+          <option value="student">Student</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button onclick="registerUser()">Create User</button>
+        <p id="registerMessage" class="message"></p>
+      </section>
 
-/* ========= CREATE USER ========= */
-async function handleCreateUser(event) {
-  event.preventDefault();
+      <section class="card">
+        <h2>Login</h2>
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="admin@campus.edu" />
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Password" />
+        <button onclick="loginUser()">Log In</button>
+        <button onclick="logoutUser()">Log Out</button>
+        <p id="loginMessage" class="message"></p>
+      </section>
+    </div>
 
-  const full_name = document.getElementById('create_full_name').value;
-  const email = document.getElementById('create_email').value;
-  const password = document.getElementById('create_password').value;
-  const role = document.getElementById('create_role').value;
+    <div class="grid-2">
+      <section class="card" id="reserve">
+        <h2>Reserve a Space</h2>
+        <label>Select Lot</label>
+        <select id="lotSelect"></select>
+        <label>Duration</label>
+        <select id="durationSelect">
+          <option value="30 minutes">30 minutes</option>
+          <option value="1 hour">1 hour</option>
+          <option value="2 hours">2 hours</option>
+        </select>
+        <button onclick="reserveSpace()">Confirm Reservation</button>
+        <p id="reservationMessage" class="message"></p>
+      </section>
 
-  const msg = document.getElementById('createUserMessage');
-  msg.textContent = '';
+      <section class="card">
+        <h2>Cancel Reservation</h2>
+        <label>Select Reservation</label>
+        <select id="reservationSelect"></select>
+        <button onclick="cancelReservation()">Cancel Reservation</button>
+        <p id="cancelMessage" class="message"></p>
+      </section>
+    </div>
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/users/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ full_name, email, password, role })
-    });
+    <section class="card" id="lots">
+      <h2>Available Parking Lots</h2>
+      <button onclick="loadLots()">Refresh Lots</button>
+      <table>
+        <thead>
+          <tr>
+            <th>Lot</th>
+            <th>Location</th>
+            <th>Total Capacity</th>
+            <th>Available</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="lotsTableBody"></tbody>
+      </table>
+    </section>
 
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      throw new Error(data.error || data.message || 'Failed to create user');
+    <section class="card hidden" id="admin">
+      <h2>Admin Dashboard</h2>
+      <div class="grid-3">
+        <section>
+          <h3>Add Lot</h3>
+          <label>Lot Name</label>
+          <input type="text" id="addLotName" placeholder="South Lot" />
+          <label>Location</label>
+          <input type="text" id="addLotLocation" placeholder="South Campus" />
+          <label>Capacity</label>
+          <input type="number" id="addLotCapacity" placeholder="100" />
+          <button onclick="addLot()">Add Lot</button>
+          <p id="addLotMessage" class="message"></p>
+        </section>
+
+        <section>
+          <h3>Update Capacity</h3>
+          <label>Select Lot</label>
+          <select id="adminLotSelect"></select>
+          <label>New Capacity</label>
+          <input type="number" id="updateCapacityInput" placeholder="New capacity" />
+          <button onclick="updateCapacity()">Update</button>
+          <p id="updateCapacityMessage" class="message"></p>
+        </section>
+
+        <section>
+          <h3>Disable Lot</h3>
+          <label>Select Lot</label>
+          <select id="disableLotSelect"></select>
+          <button onclick="disableLot()">Disable Lot</button>
+          <p id="disableLotMessage" class="message"></p>
+        </section>
+      </div>
+    </section>
+
+    <section class="card" id="reports">
+      <h2>Reports Summary</h2>
+      <button onclick="loadReport()">Load Report</button>
+      <div id="reportBox"></div>
+    </section>
+
+    <section class="card">
+      <h2>Reservations</h2>
+      <button onclick="loadReservations()">Refresh Reservations</button>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Lot</th>
+            <th>Duration</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="reservationTableBody"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    let currentUser = null;
+
+    function showMessage(id, text, isError = false) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'message ' + (isError ? 'error' : 'success');
     }
 
-    msg.style.color = 'green';
-    msg.textContent = 'User created successfully';
-    event.target.reset();
-  } catch (err) {
-    msg.style.color = 'red';
-    msg.textContent = err.message;
-  }
-}
+    async function loadCurrentUser() {
+      const response = await fetch('http://localhost:3000/api/current-user');
+      currentUser = await response.json();
 
-/* ========= LOGIN ========= */
-async function handleLogin(event) {
-  event.preventDefault();
+      document.getElementById('currentUserDisplay').textContent =
+        currentUser ? `Current User: ${currentUser.name} (${currentUser.role})` : 'Current User: None';
 
-  const email = document.getElementById('login_email').value;
-  const password = document.getElementById('login_password').value;
-  const msg = document.getElementById('loginMessage');
-  msg.textContent = '';
-
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/users/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      throw new Error(data.message || 'Login failed');
+      const adminSection = document.getElementById('admin');
+      if (currentUser && currentUser.role === 'admin') {
+        adminSection.classList.remove('hidden');
+      } else {
+        adminSection.classList.add('hidden');
+      }
     }
 
-    setCurrentUser(data.user);
-    msg.style.color = 'green';
-    msg.textContent = 'Login successful';
-  } catch (err) {
-    msg.style.color = 'red';
-    msg.textContent = err.message;
-  }
-}
+    async function registerUser() {
+      const name = document.getElementById('registerName').value;
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      const role = document.getElementById('registerRole').value;
 
-/* ========= LOAD LOTS ========= */
-async function refreshLots() {
-  const tbody = document.getElementById('lotsTableBody');
-  const msg = document.getElementById('lotsMessage');
-  if (msg) msg.textContent = '';
-  if (!tbody) return;
+      const response = await fetch('http://localhost:3000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, role })
+      });
 
-  tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
-
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/lots`);
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Failed to load lots');
+      const result = await response.json();
+      showMessage('registerMessage', result.message || result.error, !response.ok);
     }
 
-    if (!Array.isArray(data) || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5">No lots found.</td></tr>';
-    } else {
-      tbody.innerHTML = data.map(lot => `
-        <tr>
-          <td>${lot.lot_name}</td>
+    async function loginUser() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      const response = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const result = await response.json();
+      showMessage('loginMessage', result.message || result.error, !response.ok);
+      await loadCurrentUser();
+    }
+
+    async function logoutUser() {
+      const response = await fetch('http://localhost:3000/api/logout', { method: 'POST' });
+      const result = await response.json();
+      showMessage('loginMessage', result.message, false);
+      await loadCurrentUser();
+    }
+
+    async function loadLots() {
+      const response = await fetch('http://localhost:3000/api/lots');
+      const lots = await response.json();
+
+      const tableBody = document.getElementById('lotsTableBody');
+      const lotSelect = document.getElementById('lotSelect');
+      const adminLotSelect = document.getElementById('adminLotSelect');
+      const disableLotSelect = document.getElementById('disableLotSelect');
+
+      tableBody.innerHTML = '';
+      lotSelect.innerHTML = '';
+      adminLotSelect.innerHTML = '';
+      disableLotSelect.innerHTML = '';
+
+      lots.forEach(lot => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${lot.name}</td>
           <td>${lot.location}</td>
           <td>${lot.total_capacity}</td>
           <td>${lot.available_spaces}</td>
-          <td>${lot.status}</td>
-        </tr>
-      `).join('');
+          <td>${lot.is_active ? (lot.available_spaces > 0 ? 'Open' : 'Full') : 'Disabled'}</td>
+        `;
+        tableBody.appendChild(row);
+
+        if (lot.is_active) {
+          const option1 = document.createElement('option');
+          option1.value = lot.id;
+          option1.textContent = lot.name;
+          lotSelect.appendChild(option1);
+        }
+
+        const option2 = document.createElement('option');
+        option2.value = lot.id;
+        option2.textContent = lot.name;
+        adminLotSelect.appendChild(option2);
+
+        const option3 = document.createElement('option');
+        option3.value = lot.id;
+        option3.textContent = lot.name;
+        disableLotSelect.appendChild(option3);
+      });
     }
 
-    // fill select for reservation
-    const select = document.getElementById('reserve_lot_id');
-    if (select) {
-      select.innerHTML = data.map(lot =>
-        `<option value="${lot.id}">
-          ${lot.lot_name} (${lot.available_spaces}/${lot.total_capacity})
-        </option>`
-      ).join('');
-    }
-  } catch (err) {
-    tbody.innerHTML = '';
-    if (msg) {
-      msg.style.color = 'red';
-      msg.textContent = err.message;
-    }
-  }
-}
+    async function reserveSpace() {
+      if (!currentUser) {
+        showMessage('reservationMessage', 'Please log in first', true);
+        return;
+      }
 
-/* ========= LOAD RESERVATIONS ========= */
-async function refreshReservations() {
-  const tbody = document.getElementById('reservationsTableBody');
-  const msg = document.getElementById('reservationsMessage');
-  if (msg) msg.textContent = '';
-  if (!tbody) return;
+      const lot_id = document.getElementById('lotSelect').value;
+      const duration = document.getElementById('durationSelect').value;
 
-  tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+      const response = await fetch('http://localhost:3000/api/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: currentUser.id, lot_id, duration })
+      });
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/reservations`);
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Failed to load reservations');
+      const result = await response.json();
+      showMessage('reservationMessage', result.message || result.error, !response.ok);
+      await loadLots();
+      await loadReservations();
+      await loadReport();
     }
 
-    if (!Array.isArray(data) || data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5">No reservations found.</td></tr>';
-    } else {
-      tbody.innerHTML = data.map(r => `
-        <tr>
+    async function loadReservations() {
+      const response = await fetch('http://localhost:3000/api/reservations');
+      const reservations = await response.json();
+
+      const tableBody = document.getElementById('reservationTableBody');
+      const reservationSelect = document.getElementById('reservationSelect');
+
+      tableBody.innerHTML = '';
+      reservationSelect.innerHTML = '';
+
+      reservations.forEach(r => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
           <td>${r.id}</td>
           <td>${r.user_name}</td>
           <td>${r.lot_name}</td>
-          <td>${r.start_time} – ${r.end_time}</td>
+          <td>${r.duration}</td>
           <td>${r.status}</td>
-        </tr>
-      `).join('');
+        `;
+        tableBody.appendChild(row);
+
+        if (r.status === 'ACTIVE') {
+          const option = document.createElement('option');
+          option.value = r.id;
+          option.textContent = `#${r.id} - ${r.user_name} - ${r.lot_name}`;
+          reservationSelect.appendChild(option);
+        }
+      });
     }
 
-    // fill cancel select
-    const select = document.getElementById('cancel_reservation_id');
-    if (select) {
-      select.innerHTML = data.map(r =>
-        `<option value="${r.id}">
-          #${r.id} - ${r.user_name} (${r.status})
-        </option>`
-      ).join('');
-    }
-  } catch (err) {
-    tbody.innerHTML = '';
-    if (msg) {
-      msg.style.color = 'red';
-      msg.textContent = err.message;
-    }
-  }
-}
+    async function cancelReservation() {
+      const reservationId = document.getElementById('reservationSelect').value;
 
-/* ========= CREATE RESERVATION ========= */
-async function handleCreateReservation(event) {
-  event.preventDefault();
+      const response = await fetch(`http://localhost:3000/api/reservations/${reservationId}`, {
+        method: 'DELETE'
+      });
 
-  const msg = document.getElementById('reserveMessage');
-  msg.textContent = '';
-
-  if (!currentUser) {
-    msg.style.color = 'red';
-    msg.textContent = 'Please login first';
-    return;
-  }
-
-  const lot_id = Number(document.getElementById('reserve_lot_id').value);
-  const duration = Number(document.getElementById('reserve_duration').value || 30);
-
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/reservations`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user_id: currentUser.user_id,
-        lot_id,
-        duration_minutes: duration
-      })
-    });
-
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      throw new Error(data.message || data.error || 'Failed to create reservation');
+      const result = await response.json();
+      showMessage('cancelMessage', result.message || result.error, !response.ok);
+      await loadReservations();
+      await loadLots();
+      await loadReport();
     }
 
-    msg.style.color = 'green';
-    msg.textContent = 'Reservation created successfully';
+    async function addLot() {
+      const name = document.getElementById('addLotName').value;
+      const location = document.getElementById('addLotLocation').value;
+      const total_capacity = document.getElementById('addLotCapacity').value;
 
-    await refreshReservations();
-    await refreshLots();
-  } catch (err) {
-    msg.style.color = 'red';
-    msg.textContent = err.message;
-  }
-}
+      const response = await fetch('http://localhost:3000/api/admin/lots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, location, total_capacity })
+      });
 
-/* ========= CANCEL RESERVATION ========= */
-async function handleCancelReservation(event) {
-  event.preventDefault();
-
-  const msg = document.getElementById('cancelMessage');
-  msg.textContent = '';
-
-  const id = document.getElementById('cancel_reservation_id').value;
-  if (!id) {
-    msg.style.color = 'red';
-    msg.textContent = 'Select a reservation first';
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/reservations/${id}/cancel`, {
-      method: 'PUT'
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      throw new Error(data.message || data.error || 'Failed to cancel reservation');
+      const result = await response.json();
+      showMessage('addLotMessage', result.message || result.error, !response.ok);
+      await loadLots();
+      await loadReport();
     }
 
-    msg.style.color = 'green';
-    msg.textContent = 'Reservation cancelled';
-    await refreshReservations();
-    await refreshLots();
-  } catch (err) {
-    msg.style.color = 'red';
-    msg.textContent = err.message;
-  }
-}
+    async function updateCapacity() {
+      const id = document.getElementById('adminLotSelect').value;
+      const total_capacity = document.getElementById('updateCapacityInput').value;
 
-/* ========= LOAD REPORT SUMMARY ========= */
-async function loadReport() {
-  const el = document.getElementById('reportSummary');
-  if (!el) return;
-  el.textContent = 'Loading...';
+      const response = await fetch(`http://localhost:3000/api/admin/lots/${id}/capacity`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ total_capacity })
+      });
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/reports/summary`);
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Failed to load report');
+      const result = await response.json();
+      showMessage('updateCapacityMessage', result.message || result.error, !response.ok);
+      await loadLots();
     }
 
-    el.style.color = '';
-    el.textContent =
-      `Lots: ${data.total_lots}, ` +
-      `Users: ${data.total_users}, ` +
-      `Reservations: ${data.total_reservations}, ` +
-      `Active: ${data.active_reservations}, ` +
-      `Cancelled: ${data.cancelled_reservations}`;
-  } catch (err) {
-    el.style.color = 'red';
-    el.textContent = err.message;
-  }
-}
+    async function disableLot() {
+      const id = document.getElementById('disableLotSelect').value;
 
-/* ========= WIRE UP EVERYTHING ========= */
-document.addEventListener('DOMContentLoaded', () => {
-  const createUserForm = document.getElementById('createUserForm');
-  if (createUserForm) {
-    createUserForm.addEventListener('submit', handleCreateUser);
-  }
+      const response = await fetch(`http://localhost:3000/api/admin/lots/${id}/disable`, {
+        method: 'PUT'
+      });
 
-  const loginForm = document.getElementById('loginForm');
-  if (loginForm) {
-    loginForm.addEventListener('submit', handleLogin);
-  }
+      const result = await response.json();
+      showMessage('disableLotMessage', result.message || result.error, !response.ok);
+      await loadLots();
+      await loadReport();
+    }
 
-  const reserveForm = document.getElementById('reserveForm');
-  if (reserveForm) {
-    reserveForm.addEventListener('submit', handleCreateReservation);
-  }
+    async function loadReport() {
+      const response = await fetch('http://localhost:3000/api/reports/summary');
+      const report = await response.json();
 
-  const cancelForm = document.getElementById('cancelForm');
-  if (cancelForm) {
-    cancelForm.addEventListener('submit', handleCancelReservation);
-  }
+      document.getElementById('reportBox').innerHTML = `
+        <p>Total Lots: ${report.total_lots}</p>
+        <p>Active Lots: ${report.active_lots}</p>
+        <p>Total Users: ${report.total_users}</p>
+        <p>Total Reservations: ${report.total_reservations}</p>
+        <p>Active Reservations: ${report.active_reservations}</p>
+        <p>Cancelled Reservations: ${report.cancelled_reservations}</p>
+      `;
+    }
 
-  const lotsBtn = document.getElementById('refreshLotsBtn');
-  if (lotsBtn) lotsBtn.addEventListener('click', refreshLots);
+    async function init() {
+      await loadCurrentUser();
+      await loadLots();
+      await loadReservations();
+      await loadReport();
+    }
 
-  const resBtn = document.getElementById('refreshReservationsBtn');
-  if (resBtn) resBtn.addEventListener('click', refreshReservations);
-
-  const reportBtn = document.getElementById('loadReportBtn');
-  if (reportBtn) reportBtn.addEventListener('click', loadReport);
-
-  // initial data load
-  refreshLots();
-  refreshReservations();
-  loadReport();
-});
-</script>
+    init();
+  </script>
+</body>
+</html>
