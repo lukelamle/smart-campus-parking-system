@@ -12,7 +12,7 @@ const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
   password: 'newnameA1$',
-  database: 'smart_parking_db'
+  database: 'smart_parking_db',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
