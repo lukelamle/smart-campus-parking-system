@@ -13,6 +13,9 @@ const pool = mysql.createPool({
   user: 'root',
   password: 'newnameA1$',
   database: 'smart_parking_db'
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
 async function addLog(action, userId = null) {
